@@ -18,12 +18,50 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT))
 clock = pygame.time.Clock()
 
 
+def rule_one(col, row, new_set, positions):
+    #LEFT - RIGHT = COL
+     # UP - DOWN = ROW
+    count = 0
 
-def check_neighbors(positions):
-    pass 
+    # Rule 1: Check for only 1 or less neighbors
+    # Get valid neighbors of cells
+    for i in range(-1, 2):  # Iterate over neighboring rows
+        for j in range(-1, 2):  # Iterate over neighboring columns
+            new_col = col + j * TILE_SIZE
+            new_row = row + i * TILE_SIZE
+
+            # Check if the new indices are within bounds
+            if 0 <= new_col < WIDTH and 0 <= new_row < HEIGHT:
+                if (new_col, new_row) in positions:
+                    count+=1
+    print(count)
+    if(count <= 1):
+        new_set.remove((col, row))
+    return new_set
+        
+
+
+def check_neighbors(positions: set):
+    new_set = positions.copy()
+    for position in positions:
+        col, row = position 
+
+        new_set = rule_one(col, row, new_set, positions)
+        
+
+    return new_set
+    
+            
+
+        
+
+        
+        
+
 
 
 def draw_grid(positions):
+
 
     for position in positions:
         col, row = position
@@ -53,7 +91,10 @@ def main():
                 running = False
             if event.type == pygame.MOUSEBUTTONDOWN:
                 pos=pygame.mouse.get_pos()
-                positions.add((pos[0], pos[1]))  
+                posX = (pos[0]//TILE_SIZE) * TILE_SIZE
+                posY = (pos[1]//TILE_SIZE) * TILE_SIZE
+            
+                positions.add((posX, posY))  
                 print(positions)    
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
@@ -63,6 +104,7 @@ def main():
                
         if(simulate):
             print("simulating")
+            positions = check_neighbors(positions)
         screen.fill(GREY)
         draw_grid(positions)
         pygame.display.update()
