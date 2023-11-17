@@ -11,7 +11,7 @@ WIDTH, HEIGHT = 800, 800
 TILE_SIZE = 20
 GRID_WIDTH = WIDTH//TILE_SIZE
 GRID_HEIGHT = HEIGHT//TILE_SIZE
-FPS = 60
+FPS = 30
 
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
@@ -24,38 +24,36 @@ def setRandomGrid(num):
 
 
 def adjustGrid(positions: set):
-    new_set = positions.copy()
-    all_neighbors = set()
+    new_set = set()
     dead_cells = set()
-    count = 0
-    print(new_set)
+
+    
     for position in positions:
         col, row = position
-        print(col, row)
         all_neighbors = getNeighbors(col, row)
 
+
+        
+        count = 0
         for neighbor in all_neighbors:
-            if neighbor in new_set:
+            if neighbor in positions:
                 count+=1
             else:
                 dead_cells.add(neighbor)
+        if count == 2 or count == 3:
+            new_set.add(position)
+
+        
         
         for cell in dead_cells:
-            col, row = cell
-            count_dead = 0
-            all_neighbors = getNeighbors(col, row)
-            for neighbor in all_neighbors:
-                if neighbor in new_set:
-                    count_dead +=1
+            col_dead, row_dead = cell
+            all_neighbors_dead = getNeighbors(col_dead, row_dead)
+            count_dead = sum(1 for neighbor in all_neighbors_dead if neighbor in positions)
+            
             
             if count_dead == 3:
                 new_set.add(cell)
-
-        if (count <=1):
-            new_set.remove((col, row))
-        if(count >=4):
-            new_set.remove((col, row))
-
+            
     return new_set
 
 
@@ -120,7 +118,7 @@ def main():
                 if event.key == pygame.K_SPACE:
                     simulate = not simulate
                 if event.key == pygame.K_r:
-                    positions = setRandomGrid(random.randrange(2,5) * 20)
+                    positions = setRandomGrid(random.randrange(7, 10) * 20)
                 if event.key == pygame.K_w:
                     positions = set()
 
