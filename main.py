@@ -1,5 +1,5 @@
 import pygame
-
+import random
 pygame.init()
 
 #Define Constants
@@ -18,13 +18,53 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT))
 clock = pygame.time.Clock()
 
 
-def rule_one(col, row, new_set, positions):
-    #LEFT - RIGHT = COL
-     # UP - DOWN = ROW
-    count = 0
+def setRandomGrid(num):
+    return set([(random.randrange(0, GRID_HEIGHT) * 20, random.randrange(0, GRID_WIDTH) * 20) for _ in range(num)])
 
-    # Rule 1: Check for only 1 or less neighbors
-    # Get valid neighbors of cells
+
+
+def adjustGrid(positions: set):
+    new_set = positions.copy()
+    all_neighbors = set()
+    dead_cells = set()
+    count = 0
+    print(new_set)
+    for position in positions:
+        col, row = position
+        print(col, row)
+        all_neighbors = getNeighbors(col, row)
+
+        for neighbor in all_neighbors:
+            if neighbor in new_set:
+                count+=1
+            else:
+                dead_cells.add(neighbor)
+        
+        for cell in dead_cells:
+            col, row = cell
+            count_dead = 0
+            all_neighbors = getNeighbors(col, row)
+            for neighbor in all_neighbors:
+                if neighbor in new_set:
+                    count_dead +=1
+            
+            if count_dead == 3:
+                new_set.add(cell)
+
+        if (count <=1):
+            new_set.remove((col, row))
+        if(count >=4):
+            new_set.remove((col, row))
+
+    return new_set
+
+
+            
+
+
+
+def getNeighbors(col, row):
+    neighbors = set()
     for i in range(-1, 2):  # Iterate over neighboring rows
         for j in range(-1, 2):  # Iterate over neighboring columns
             new_col = col + j * TILE_SIZE
@@ -32,36 +72,14 @@ def rule_one(col, row, new_set, positions):
 
             # Check if the new indices are within bounds
             if 0 <= new_col < WIDTH and 0 <= new_row < HEIGHT:
-                if (new_col, new_row) in positions:
-                    count+=1
-    print(count)
-    if(count <= 1):
-        new_set.remove((col, row))
-    return new_set
-        
+                neighbors.add((new_col, new_row))
 
-
-def check_neighbors(positions: set):
-    new_set = positions.copy()
-    for position in positions:
-        col, row = position 
-
-        new_set = rule_one(col, row, new_set, positions)
-        
-
-    return new_set
+    # Remove the cell itself from the neighbors
+    neighbors.remove((col, row))
     
-            
-
-        
-
-        
-        
-
-
+    return neighbors
 
 def draw_grid(positions):
-
 
     for position in positions:
         col, row = position
@@ -93,18 +111,23 @@ def main():
                 pos=pygame.mouse.get_pos()
                 posX = (pos[0]//TILE_SIZE) * TILE_SIZE
                 posY = (pos[1]//TILE_SIZE) * TILE_SIZE
-            
-                positions.add((posX, posY))  
-                print(positions)    
+                if((posX, posY) in positions):
+                    positions.remove((posX, posY))
+                else:
+                    positions.add((posX, posY))  
+                #print(positions)    
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
                     simulate = not simulate
+                if event.key == pygame.K_r:
+                    positions = setRandomGrid(random.randrange(2,5) * 20)
+                if event.key == pygame.K_w:
+                    positions = set()
 
 
                
         if(simulate):
-            print("simulating")
-            positions = check_neighbors(positions)
+            positions = adjustGrid(positions)
         screen.fill(GREY)
         draw_grid(positions)
         pygame.display.update()
